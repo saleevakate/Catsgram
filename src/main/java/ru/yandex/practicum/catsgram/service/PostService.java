@@ -4,14 +4,12 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.catsgram.exception.ConditionsNotMetException;
 import ru.yandex.practicum.catsgram.exception.NotFoundException;
 import ru.yandex.practicum.catsgram.model.Post;
+import ru.yandex.practicum.catsgram.model.SortOrder;
 
 import java.time.Instant;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
-// Указываем, что класс PostService - является бином и его
-// нужно добавить в контекст приложения
 @Service
 public class PostService {
     private final Map<Long, Post> posts = new HashMap<>();
@@ -21,8 +19,20 @@ public class PostService {
         this.userService = userService;
     }
 
-    public Collection<Post> findAll() {
-        return posts.values();
+    public Collection<Post> findAll(int size, SortOrder sort, int from) {
+        // Получаем все посты и сортируем их
+        List<Post> sortedPosts = posts.values().stream()
+                .sorted(sort == SortOrder.ASCENDING
+                        ? Comparator.comparing(Post::getPostDate)
+                        : Comparator.comparing(Post::getPostDate).reversed())
+                .collect(Collectors.toList());
+
+        // Определяем границы выборки
+        int startIndex = Math.min(from, sortedPosts.size());
+        int endIndex = Math.min(startIndex + size, sortedPosts.size());
+
+        // Возвращаем подсписок в заданных границах
+        return sortedPosts.subList(startIndex, endIndex);
     }
 
     public Post create(Post post) {
@@ -51,6 +61,10 @@ public class PostService {
             return oldPost;
         }
         throw new NotFoundException("Пост с id = " + newPost.getId() + " не найден");
+    }
+
+    public Optional<Post> postById(long postId) {
+        return Optional.ofNullable(posts.get(postId));
     }
 
     private long getNextId() {
