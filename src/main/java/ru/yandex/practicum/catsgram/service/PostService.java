@@ -63,7 +63,7 @@ public class PostService {
         throw new NotFoundException("Пост с id = " + newPost.getId() + " не найден");
     }
 
-    public Optional<Post> postById(long postId) {
+    public Optional<Post> findById(long postId) {
         return Optional.ofNullable(posts.get(postId));
     }
 

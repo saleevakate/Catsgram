@@ -3,6 +3,7 @@ package ru.yandex.practicum.catsgram.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.catsgram.exception.ParameterNotValidException;
 import ru.yandex.practicum.catsgram.model.Post;
 import ru.yandex.practicum.catsgram.model.SortOrder;
 import ru.yandex.practicum.catsgram.service.PostService;
@@ -24,20 +25,16 @@ public class PostController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "desc") String sort,
             @RequestParam(defaultValue = "0") int from) {
-
         SortOrder sortOrder = SortOrder.from(sort);
         if (sortOrder == null) {
-            throw new IllegalArgumentException("Недопустимое значение параметра sort: " + sort +
-                    ". Допустимые значения: asc, ascending, desc, descending");
+            throw new ParameterNotValidException("sort", "Получено: " + sort + " должно быть: ask или desc");
         }
-
         if (size <= 0) {
-            throw new IllegalArgumentException("Параметр size должен быть больше нуля");
+            throw new ParameterNotValidException("size", "Размер должен быть больше нуля");
         }
         if (from < 0) {
-            throw new IllegalArgumentException("Параметр from не может быть отрицательным");
+            throw new ParameterNotValidException("from", "Начало выборки должно быть положительным числом");
         }
-
         return postService.findAll(size, sortOrder, from);
     }
 
@@ -55,7 +52,7 @@ public class PostController {
     }
 
     @GetMapping("/posts/{postId}")
-    public Optional<Post> findById(@PathVariable long postId) {
-        return postService.postById(postId);
+    public Optional<Post> postById(@PathVariable long postId) {
+        return postService.findById(postId);
     }
 }
